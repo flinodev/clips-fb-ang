@@ -19,7 +19,6 @@ export class TabsContainerComponent implements AfterContentInit {
     const activatedTabs = this.tabs.filter((tab) => {
       tab.active;
     });
-    console.log(activatedTabs);
     if (!activatedTabs || activatedTabs.length === 0) {
       this.selectTab(this.tabs!.first);
     }
