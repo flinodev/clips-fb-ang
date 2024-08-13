@@ -262,4 +262,6 @@
     </a>
   </div>
 </section>
+@if( !(auth.isAuthenticadedWithDelay$ | async) ) {
 <app-auth-modal></app-auth-modal>
+}

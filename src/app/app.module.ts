@@ -6,6 +6,10 @@ import { AppRoutingModule } from './app-rounting.module';
 import { UserModule } from './user/user.module';
 import { NavComponent } from './nav/nav.component';
 import { ModalService } from './services/modal.service';
+import { AngularFireModule } from '@angular/fire/compat';
+import { environment } from '../environments/environment';
+import { AngularFireAuthModule } from '@angular/fire/compat/auth';
+import { AngularFirestoreModule } from '@angular/fire/compat/firestore';
 
 @NgModule({
   declarations: [AppComponent, NavComponent],
@@ -14,6 +18,9 @@ import { ModalService } from './services/modal.service';
     BrowserModule,
     BrowserAnimationsModule,
     UserModule,
+    AngularFireModule.initializeApp(environment.firebase),
+    AngularFireAuthModule,
+    AngularFirestoreModule,
   ],
   providers: [ModalService],
   bootstrap: [AppComponent],
