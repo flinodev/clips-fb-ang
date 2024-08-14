@@ -29,6 +29,10 @@
   <p class="text-red-400">Value too low.</p>
   } @if (control.errors['max']) {
   <p class="text-red-400">Value too high.</p>
+  } @if (control.errors['noMatch']) {
+  <p class="text-red-400">Passwords do not match.</p>
+  } @if (control.errors['emailTaken']) {
+  <p class="text-red-400">Email taken. Please try another email.</p>
   }
 </ng-container>
 }
