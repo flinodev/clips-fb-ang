@@ -1,15 +1,32 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
+import {
+  AngularFireStorage,
+  AngularFireUploadTask,
+} from '@angular/fire/compat/storage';
+import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-
+import { last, switchMap, timestamp } from 'rxjs';
+import { v4 as uuid } from 'uuid';
+import firebase from 'firebase/compat/app';
+import { ClipService } from '../../services/clip.service';
+import { Router } from '@angular/router';
 @Component({
   selector: 'app-upload',
   templateUrl: './upload.component.html',
   styleUrl: './upload.component.css',
 })
-export class UploadComponent {
+export class UploadComponent implements OnDestroy {
   isDragover = false;
   file: File | null = null;
   nextStep = false;
+  showAlert = false;
+  alertColor = 'blue';
+  alertMsg = 'Please wait!. Your clip is being uploaded.';
+  isSubmission = false;
+  percentage = 0;
+  showPercentage = false;
+  user: firebase.User | null = null;
+  task!: AngularFireUploadTask;
 
   title = new FormControl('', {
     validators: [Validators.required, Validators.minLength(3)],
@@ -20,9 +37,24 @@ export class UploadComponent {
     title: this.title,
   });
 
+  constructor(
+    private storage: AngularFireStorage,
+    private auth: AngularFireAuth,
+    private clipsService: ClipService,
+    private router: Router
+  ) {
+    this.auth.user.subscribe((user) => {
+      this.user = user;
+    });
+  }
+  ngOnDestroy(): void {
+    this.task?.cancel();
+  }
   storeFile(event: Event) {
     this.isDragover = false;
-    this.file = (event as DragEvent).dataTransfer?.files.item(0) ?? null;
+    this.file = (event as DragEvent).dataTransfer
+      ? (event as DragEvent).dataTransfer?.files.item(0) ?? null
+      : (event.target as HTMLInputElement).files?.item(0) ?? null;
     console.log(this.file);
     if (!this.file || this.file.type !== 'video/mp4') return;
 
@@ -31,6 +63,57 @@ export class UploadComponent {
   }
 
   uploadFile() {
-    console.log('File uploaded');
+    this.uploadForm.disable();
+    this.showAlert = true;
+    this.alertColor = 'blue';
+    this.alertMsg = 'Please wait!. Your clip is being uploaded.';
+    this.showPercentage = true;
+    this.isSubmission = true;
+    const clipFileName = uuid();
+    const clipPath = `clips/${clipFileName}.mp4`;
+    this.task = this.storage.upload(clipPath, this.file);
+    const clipRef = this.storage.ref(clipPath);
+    this.task.percentageChanges().subscribe((progress) => {
+      this.percentage = (progress as number) / 100;
+    });
+
+    this.task
+      .snapshotChanges()
+      .pipe(
+        last(),
+        switchMap(() => clipRef.getDownloadURL())
+      )
+      .subscribe({
+        next: async (url) => {
+          const clip = {
+            uid: this.user?.uid as string,
+            displayName: this.user?.displayName as string,
+            title: this.title.value,
+            fileName: `${clipFileName}.mp4`,
+            url,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+          };
+          const clipRef = await this.clipsService.createClip(clip);
+          console.log(clip);
+          this.showAlert = true;
+          this.alertColor = 'green';
+          this.alertMsg =
+            'Success! Your clip is now ready to share with the world';
+          this.showPercentage = false;
+          this.isSubmission = false;
+          setTimeout(() => {
+            this.router.navigate(['clip', clipRef.id]);
+          }, 1000);
+        },
+        error: (error) => {
+          console.log(error);
+          this.uploadForm.enable();
+          this.showAlert = true;
+          this.alertColor = 'red';
+          this.alertMsg = 'Upload failed. Try again later';
+          this.showPercentage = false;
+          this.isSubmission = false;
+        },
+      });
   }
 }
