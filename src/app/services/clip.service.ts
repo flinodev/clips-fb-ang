@@ -7,21 +7,50 @@ import {
 import IClips from '../models/clips';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { map, switchMap } from 'rxjs/operators';
-import { BehaviorSubject, combineLatest, of } from 'rxjs';
+import { BehaviorSubject, combineLatest, firstValueFrom, of } from 'rxjs';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
+import {
+  ActivatedRouteSnapshot,
+  MaybeAsync,
+  Resolve,
+  Router,
+  RouterStateSnapshot,
+} from '@angular/router';
 
 @Injectable({
   providedIn: 'root',
 })
-export class ClipService {
+export class ClipService implements Resolve<IClips | null> {
   clipsCollection: AngularFirestoreCollection<IClips>;
+  pageClips: IClips[] = [];
+  pendingRequest = false;
 
   constructor(
     private db: AngularFirestore,
     private auth: AngularFireAuth,
-    private storage: AngularFireStorage
+    private storage: AngularFireStorage,
+    private router: Router
   ) {
     this.clipsCollection = db.collection('clips');
+  }
+
+  resolve(
+    route: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot
+  ): MaybeAsync<IClips | null> {
+    return this.clipsCollection
+      .doc(route.params['id'])
+      .get()
+      .pipe(
+        map((snapshot) => {
+          const data = snapshot.data();
+          if (!data) {
+            this.router.navigate(['/']);
+            return null;
+          }
+          return data;
+        })
+      );
   }
 
   createClip(data: IClips) {
@@ -58,5 +87,27 @@ export class ClipService {
     );
     await screenshotStorageRef.delete();
     await this.clipsCollection.doc(clip.docID).delete();
+  }
+
+  async getClips() {
+    if (this.pendingRequest) return;
+    this.pendingRequest = true;
+    let query = this.clipsCollection.ref.orderBy('timestamp', 'desc').limit(6);
+    const { length } = this.pageClips;
+    if (length) {
+      const lastDocID = this.pageClips[length - 1].docID;
+      const lastDoc = await firstValueFrom(
+        this.clipsCollection.doc(lastDocID).get()
+      );
+      query = query.startAfter(lastDoc);
+    }
+
+    const snapshot = await query.get();
+    console.log(snapshot.docs.length);
+    snapshot.forEach((doc) => {
+      this.pageClips.push({ docID: doc.id, ...doc.data() });
+    });
+
+    this.pendingRequest = false;
   }
 }

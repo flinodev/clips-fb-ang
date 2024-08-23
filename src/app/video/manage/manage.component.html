@@ -16,52 +16,67 @@
   </div>
 </section>
 
-<!-- User's Video Section -->
-<div class="container mx-auto my-8">
-  <!-- Video List -->
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-    @for(clip of clips; track clip.docID) {
-    <div
-      class="mt-6 rounded-tl-2xl rounded-br-2xl shadow-xl bg-secondary flex flex-col justify-start"
-    >
-      <!-- Image -->
-      <a href="#">
-        <img
-          class="card-img-top rounded-tl-2xl w-full"
-          src="assets/img/1.jpg"
-        />
-      </a>
+<div class="max-w-6xl mx-8 md:mx-10 lg:mx-20 xl:mx-auto">
+  <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+    @for(column of clipsByColumns; track $index) {
+    <ul [ngClass]="classesByColumn[$index]">
+      @for(clip of column; track clip.docID) {
+      <li class="text-sm leading-6">
+        <div class="relative group">
+          <div
+            class="absolute transition rounded-lg opacity-25 -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 blur duration-400 group-hover:opacity-100 group-hover:duration-200"
+          ></div>
+          <!-- Image -->
+          <div
+            class="relative p-6 space-y-8 leading-none rounded-lg bg-slate-800 ring-1 ring-gray-900/5"
+          >
+            <a [routerLink]="['/', 'clip', clip.docID]">
+              <img
+                class="card-img-top rounded-tl-2xl w-full"
+                [src]="clip.screenshotUrl"
+                crossorigin
+              />
+            </a>
+            <!-- Body -->
+            <div class="p-6 text-2xl">
+              <!-- Link -->
+              <a
+                [routerLink]="['/', 'clip', clip.docID]"
+                class="font-bold mb-2"
+              >
+                {{ clip.title }}
+              </a>
+              <a
+                href="#"
+                (click)="copyClipboard($event, clip.docID)"
+                class="bg-gray-400 text-white px-2 py-1 ml-2 text-sm rounded"
+              >
+                Copy Link
+              </a>
 
-      <!-- Body -->
-      <div class="p-6 text-2xl">
-        <!-- Link -->
-        <a href="#" class="font-bold mb-2"> {{ clip.title }} </a>
-        <a
-          href="#"
-          class="bg-gray-400 text-white px-2 py-1 ml-2 text-sm rounded"
-        >
-          Copy Link
-        </a>
-      </div>
-
-      <!-- Actions -->
-      <div class="flex text-center text-2xl bg-gray-800 p-2 mt-auto">
-        <a
-          href="#"
-          (click)="openModal($event, clip)"
-          class="flex-1 p-2 border-right border-r-2 border-gray-700 transition hover:text-indigo-400"
-        >
-          <span class="material-icons text-base">build</span>
-        </a>
-        <a
-          href="#"
-          (click)="delete($event, clip)"
-          class="flex-1 p-2 rounded-br-2xl transition hover:text-indigo-400"
-        >
-          <span class="material-icons text-base">delete</span>
-        </a>
-      </div>
-    </div>
+              <!-- Actions -->
+              <div class="flex text-center text-2xl bg-gray-800 p-2 mt-auto">
+                <a
+                  href="#"
+                  (click)="openModal($event, clip)"
+                  class="flex-1 p-2 border-right border-r-2 border-gray-700 transition hover:text-indigo-400"
+                >
+                  <span class="material-icons text-base">build</span>
+                </a>
+                <a
+                  href="#"
+                  (click)="delete($event, clip)"
+                  class="flex-1 p-2 rounded-br-2xl transition hover:text-indigo-400"
+                >
+                  <span class="material-icons text-base">delete</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </li>
+      }
+    </ul>
     }
   </div>
 </div>

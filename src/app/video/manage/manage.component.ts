@@ -13,6 +13,12 @@ import { BehaviorSubject } from 'rxjs';
 export class ManageComponent implements OnInit {
   videoOrder = '1';
   clips: IClips[] = [];
+  clipsByColumns: IClips[][] = [];
+  classesByColumn = [
+    'space-y-8',
+    'hidden space-y-8 sm:block',
+    'hidden space-y-8 lg:block',
+  ];
   activeClip: IClips | null = null;
   sort$: BehaviorSubject<string>;
   constructor(
@@ -37,6 +43,18 @@ export class ManageComponent implements OnInit {
           ...doc.data(),
         });
       });
+      const factor = Math.ceil(this.clips.length / 3);
+      let indexColumn = 0;
+      this.clipsByColumns = [];
+      this.clipsByColumns.push([]);
+      this.clips.forEach((c, idx) => {
+        if (idx && idx % factor === 0) {
+          indexColumn = indexColumn + 1;
+          this.clipsByColumns.push([]);
+        }
+        this.clipsByColumns[indexColumn].push(c);
+      });
+      console.log(this.clipsByColumns);
     });
   }
 
@@ -73,5 +91,15 @@ export class ManageComponent implements OnInit {
         this.clips.splice(index, 1);
       }
     });
+  }
+
+  async copyClipboard(event: MouseEvent, docID: string | undefined) {
+    event.preventDefault();
+    if (!docID) {
+      return;
+    }
+    const url = `${location.origin}/clip/${docID}`;
+    await navigator.clipboard.writeText(url);
+    alert('Link copied!');
   }
 }

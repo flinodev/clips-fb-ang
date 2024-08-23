@@ -1,0 +1,66 @@
+<!-- Clips List -->
+<div class="md:columns-2 lg:columns-3 gap-6 p-4 sm:p-1 mt-2">
+  @for(clip of clipService.pageClips; track clip.docID) {
+  <div class="animate-in zoom-in duration-200 mt-2">
+    <div class="rounded-lg flex flex-col space-y-2 break-inside-avoid relative">
+      <div class="flex flex-col break-inside-avoid-page z-0 relative">
+        <div class="flex justify-center">
+          <div
+            class="relative group flex space-x-1 space-y-1 flex-shrink-0"
+            style="width: 90%"
+          >
+            <div
+              class="absolute transition rounded-lg opacity-25 -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 blur duration-400 group-hover:opacity-100 group-hover:duration-200"
+            ></div>
+            <a
+              [routerLink]="['/', 'clip', clip.docID]"
+              class="mt-6 rounded-tl-2xl rounded-br-2xl shadow-xl bg-secondary hover:-translate-y-2 transition hover:ring-2 ring-gray-300 hover:ring-purple-600 transform duration-300 hover:shadow-purple-300 hover:shadow-md"
+              (click)="goTopPage()"
+            >
+              <!-- Image -->
+              <img
+                class="card-img-top rounded-tl-2xl w-full"
+                [src]="clip.screenshotUrl"
+                crossorigin
+              />
+
+              <!-- Shape -->
+              <div class="relative">
+                <div
+                  class="absolute pointer-events-none bottom-full w-full bg-secondary text-white"
+                >
+                  <div class="absolute bottom-full w-full pb-1 overflow-hidden">
+                    <svg
+                      viewBox="0 0 100 50"
+                      preserveAspectRatio="none"
+                      class="absolute bottom-0 w-full h-full tranform"
+                      style="transform-origin: top center; transform: scale(2)"
+                    >
+                      <path d="M0 25h25L75 0h25v50H0z" fill="#283046"></path>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Body -->
+              <div class="p-8">
+                <!-- Heading -->
+                <h2 class="text-3xl mb-2">{{ clip.title }}</h2>
+
+                <!-- Name & Date -->
+                <p class="mb-0">
+                  {{ clip.displayName }} &#183;
+                  <span class="text-gray-400">{{
+                    clip.timestamp | fbTimestamp
+                  }}</span>
+                </p>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  }
+</div>
